@@ -1,0 +1,41 @@
+[package]
+name = "jobacct"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Portable CPU-time and RSS accounting for a Unix process group, with live sampling"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/example/jobacct"
+keywords = ["process-group", "rusage", "rss", "cpu", "supervisor"]
+categories = ["os::unix-apis", "os"]
+exclude = []
+
+[features]
+default = []
+tokio = ["dep:tokio"]
+
+[dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.17"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libproc = "0.14"
+
+[dependencies.tokio]
+version = "1"
+optional = true
+default-features = false
+features = ["rt", "time", "process", "macros"]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "process"] }
+
+[[example]]
+name = "time"
+path = "examples/time.rs"
+
+[package.metadata.docs.rs]
+features = ["tokio"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-freebsd"]
