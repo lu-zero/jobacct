@@ -25,13 +25,13 @@ libproc = "0.14"
 mach2 = "0.6"
 
 [dependencies.tokio]
-version = "1"
+version = "1.53"
 optional = true
 default-features = false
 features = ["rt", "time", "process", "macros"]
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "process"] }
+tokio = { version = "1.53", features = ["rt-multi-thread", "macros", "time", "process"] }
 
 [[example]]
 name = "time"
