@@ -8,10 +8,7 @@ use super::Member;
 pub(crate) fn members(pgid: i32) -> io::Result<Vec<Member>> {
     let ticks = procfs::ticks_per_second() as f64;
     if ticks <= 0.0 {
-        return Err(io::Error::new(
-            io::ErrorKind::Other,
-            "CLK_TCK is zero",
-        ));
+        return Err(io::Error::other("CLK_TCK is zero"));
     }
     let page = procfs::page_size();
 
@@ -42,6 +39,6 @@ pub(crate) fn members(pgid: i32) -> io::Result<Vec<Member>> {
 fn proc_err(e: procfs::ProcError) -> io::Error {
     match e {
         procfs::ProcError::Io(err, _) => err,
-        other => io::Error::new(io::ErrorKind::Other, other),
+        other => io::Error::other(other),
     }
 }

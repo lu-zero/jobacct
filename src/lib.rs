@@ -6,7 +6,8 @@
 //! helpers (cc1, as, ld) are not lost.
 //!
 //! The crate-root types (`Job`, `Waiter`, `Monitor`) wrap `std::process`.
-//! Enable `tokio` for [`tokio`] — that façade has **no sync `sample`**.
+//! Enable `tokio` for the `jobacct::tokio` façade — it has **no sync
+//! `sample`**.
 //!
 //! Supported: Linux, macOS, FreeBSD. There is no Windows backend.
 //!
@@ -60,15 +61,11 @@ pub use std_job::{CommandJobExt, Job, Waiter, Watch};
 /// One snapshot of a process group.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Sample {
-    /// Σ user+sys of every pid ever observed in the group (latched on death).
-    /// Can exceed wall time on multi-core.
+    /// Σ user+sys of every pid ever seen, latched on death. Can exceed wall time.
     pub cpu: Duration,
-    /// Σ RSS of members **currently** alive, in bytes.
-    /// Shared pages (libc, libLLVM) are counted once per process, not once
-    /// physically — an overcount, and the portable OOM-scheduling upper bound.
+    /// Σ RSS of live members, in bytes. Shared pages overcount.
     pub rss: u64,
-    /// Max `rss` observed on this handle (bytes). Kernel peaks (cgroup /
-    /// job object) are out of scope for v1.
+    /// Max `rss` observed on this handle (bytes).
     pub rss_peak: u64,
     /// Live members in the last scan.
     pub nprocs: u32,
@@ -93,11 +90,9 @@ pub enum Event {
 /// Options for [`CommandJobExt::spawn_job_with`].
 #[derive(Clone, Debug)]
 pub struct JobOptions {
-    /// `killpg` the group if `Job` / `Waiter` is dropped before wait.
-    /// Default `false`.
+    /// `killpg` the group if `Job`/`Waiter` is dropped before wait. Default `false`.
     pub kill_on_drop: bool,
-    /// Interval used by [`Job::wait`] / [`Job::wait_polling`] / [`Job::watch`].
-    /// Default 200ms.
+    /// Poll interval for `wait`/`wait_polling`/`watch`. Default 200ms.
     pub poll: Duration,
 }
 

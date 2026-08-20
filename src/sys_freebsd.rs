@@ -1,17 +1,12 @@
 use std::io;
-use std::mem::{size_of, MaybeUninit};
+use std::mem::size_of;
 use std::ptr;
 
 use super::{timeval_to_duration, Member};
 
 pub(crate) fn members(pgid: i32) -> io::Result<Vec<Member>> {
     unsafe {
-        let mut mib = [
-            libc::CTL_KERN,
-            libc::KERN_PROC,
-            libc::KERN_PROC_PGRP,
-            pgid,
-        ];
+        let mut mib = [libc::CTL_KERN, libc::KERN_PROC, libc::KERN_PROC_PGRP, pgid];
         let mut len = 0usize;
         let rc = libc::sysctl(
             mib.as_mut_ptr(),
@@ -51,10 +46,7 @@ pub(crate) fn members(pgid: i32) -> io::Result<Vec<Member>> {
 
         let mut out = Vec::with_capacity(n);
         for i in 0..n {
-            let kp = ptr::read_unaligned(
-                buf.as_ptr().add(i * sz) as *const libc::kinfo_proc,
-            );
-            let _ = MaybeUninit::new(kp); // keep read
+            let kp = ptr::read_unaligned(buf.as_ptr().add(i * sz) as *const libc::kinfo_proc);
             let cpu = timeval_to_duration(kp.ki_rusage.ru_utime)
                 .saturating_add(timeval_to_duration(kp.ki_rusage.ru_stime));
             let rss = (kp.ki_rssize.max(0) as u64).saturating_mul(page);

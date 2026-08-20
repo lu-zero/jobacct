@@ -55,7 +55,7 @@ Do not `Deref` to `Child`. Do not call `Child::wait` yourself.
 | OS | Group members | CPU | RSS |
 |---|---|---|---|
 | Linux | `/proc` scan, `stat.pgrp` | `utime+stime` / `CLK_TCK` | `rss * page_size` |
-| macOS | `libproc` `ProcFilter::ByProgramGroup` | `pti_total_user+system` (ns) | `pti_resident_size` bytes |
+| macOS | `libproc` `ProcFilter::ByProgramGroup` | `pti_total_user+system` (Mach ticks → ns via timebase) | `pti_resident_size` bytes |
 | FreeBSD | `sysctl KERN_PROC_PGRP` | `ki_rusage` timeval | `ki_rssize * page` |
 
 Kill is `killpg(pgid, SIGKILL)`. Wait waits the **leader** only, then one

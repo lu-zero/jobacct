@@ -5,11 +5,9 @@ use std::time::Duration;
 use crate::sys::{self, Member};
 use crate::Sample;
 
-/// Cheap, `Clone` handle that can sample a process group without borrowing
-/// the leader [`std::process::Child`].
-///
-/// `sample` is **always sync**. The tokio façade wraps this in
-/// `spawn_blocking` so async callers never see a blocking method.
+/// Cheap, `Clone` handle that samples a process group without borrowing the
+/// leader [`std::process::Child`]. Always sync; the tokio façade wraps it in
+/// `spawn_blocking`.
 #[derive(Clone, Debug)]
 pub struct Monitor {
     pub(crate) pgid: i32,
@@ -18,8 +16,8 @@ pub struct Monitor {
 
 #[derive(Debug, Default)]
 struct Acc {
-    /// Last observed CPU per pid. Dead pids stay, so short-lived children
-    /// still count after they vanish from the kernel table.
+    /// Last CPU per pid. Dead pids stay, so short-lived children count after
+    /// they vanish from the kernel table.
     cpu_by_pid: HashMap<u32, Duration>,
     rss_peak: u64,
 }

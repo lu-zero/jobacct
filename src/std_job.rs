@@ -43,8 +43,7 @@ pub struct Waiter {
 
 impl Job {
     pub fn spawn(cmd: &mut Command, opts: &JobOptions) -> io::Result<Self> {
-        // POSIX_SPAWN_SETPGROUP: child's pid becomes its pgid. Does not
-        // steal a user `pre_exec`.
+        // Child's pid becomes its pgid, without stealing a user `pre_exec`.
         cmd.process_group(0);
         let child = cmd.spawn()?;
         let pid = child.id() as i32;
@@ -111,7 +110,7 @@ impl Job {
         let child = self
             .child
             .as_mut()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "job already split"))?;
+            .ok_or_else(|| io::Error::other("job already split"))?;
         try_wait_inner(child, &self.mon, self.start, &self.finished)
     }
 
@@ -125,7 +124,7 @@ impl Job {
         let child = self
             .child
             .as_mut()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "job already split"))?;
+            .ok_or_else(|| io::Error::other("job already split"))?;
         wait_polling_inner(child, &self.mon, self.start, every, &self.finished)
     }
 
@@ -217,8 +216,7 @@ impl Iterator for Watch {
         if self.done {
             return None;
         }
-        // Sample first so a zombie leader is still in the table, then
-        // try_wait which reaps it. Exit carries that pre-reap sample.
+        // Sample first so a zombie leader is still visible, then reap it.
         match self.waiter.sample() {
             Ok(s) => match self.waiter.try_wait_with(s) {
                 Ok(Some(exit)) => {

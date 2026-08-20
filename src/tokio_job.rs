@@ -1,6 +1,4 @@
-//! Tokio façade. **No sync `sample`** — that was the footgun.
-//!
-//! [`Monitor::sample`] is `async` and runs the Unix scan in `spawn_blocking`.
+//! Tokio façade. No sync `sample`; the Unix scan runs in `spawn_blocking`.
 //! [`Job::split`] so a supervisor can wait in one task and sample from another.
 
 use std::cell::Cell;
@@ -27,7 +25,7 @@ impl Monitor {
         let inner = self.inner.clone();
         tokio::task::spawn_blocking(move || inner.sample())
             .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+            .map_err(io::Error::other)?
     }
 }
 
@@ -132,13 +130,12 @@ impl Job {
         self.wait_polling(self.opts.poll).await
     }
 
-    /// Sample, then `try_wait`, then sleep. Same order as the std loop so a
-    /// zombie leader is still visible for the last sample.
+    /// Sample, then `try_wait`, then sleep — same order as the std loop.
     pub async fn wait_polling(&mut self, every: Duration) -> io::Result<Exit> {
         let child = self
             .child
             .as_mut()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "job already split"))?;
+            .ok_or_else(|| io::Error::other("job already split"))?;
         wait_polling_inner(child, &self.mon, self.start, every, &self.finished).await
     }
 
